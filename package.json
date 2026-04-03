@@ -1,0 +1,17 @@
+{
+  "name": "codedrop",
+  "version": "1.0.0",
+  "description": "Ephemeral Code Sharing Platform",
+  "main": "dist/worker.js",
+  "scripts": {
+    "build": "npm run build:worker",
+    "build:worker": "esbuild src/worker.js --bundle --format=esm --outfile=dist/worker.js --minify --sourcemap",
+    "dev": "npm run build && npm run dev:server",
+    "dev:server": "wrangler dev",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "devDependencies": {
+    "esbuild": "^0.19.0"
+  },
+  "dependencies": {}
+}

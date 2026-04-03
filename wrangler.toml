@@ -1,0 +1,16 @@
+name = "soft-rain"
+main = "dist/worker.js"
+compatibility_date = "2023-10-30"
+
+[vars]
+# Environment variables can be defined here
+
+[[kv_namespaces]]
+binding = "SNIPPETS"
+# Set these via environment variables or wrangler secrets
+# id = "${KV_NAMESPACE_ID}"
+# preview_id = "${KV_NAMESPACE_ID}"
+
+[assets]
+directory = "public"
+binding = "ASSETS"

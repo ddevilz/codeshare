@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CodeDrop — Ephemeral Code Sharing</title>
+  <meta name="description" content="Share code instantly. Links self-destruct in 10 minutes." />
+  <meta property="og:title" content="CodeDrop" />
+  <meta property="og:description" content="Share code instantly. Links self-destruct in 10 minutes." />
+
+  <!-- highlight.js for syntax highlighting in view mode -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+  <!-- JetBrains Mono for code, Syne for brand -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="app">
+
+  <!-- ── Header ── -->
+  <header class="header">
+    <a href="/" class="brand">
+      <div class="brand-logo">⌗</div>
+      <span class="brand-name">Code<span>Drop</span></span>
+    </a>
+
+    <div class="header-meta">
+      <span class="toolbar-stat" style="padding-left:8px;border-left:1px solid var(--border)">
+        <span id="char-count">0</span> chars
+      </span>
+      <input
+        class="title-input"
+        id="title-input"
+        type="text"
+        maxlength="80"
+        placeholder="untitled snippet..."
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <select class="lang-select" id="lang-select">
+        <option value="plaintext">Plain Text</option>
+        <option value="javascript">JavaScript</option>
+        <option value="typescript">TypeScript</option>
+        <option value="python">Python</option>
+        <option value="rust">Rust</option>
+        <option value="go">Go</option>
+        <option value="java">Java</option>
+        <option value="cpp">C++</option>
+        <option value="c">C</option>
+        <option value="csharp">C#</option>
+        <option value="php">PHP</option>
+        <option value="ruby">Ruby</option>
+        <option value="swift">Swift</option>
+        <option value="kotlin">Kotlin</option>
+        <option value="scala">Scala</option>
+        <option value="html">HTML</option>
+        <option value="css">CSS</option>
+        <option value="scss">SCSS</option>
+        <option value="json">JSON</option>
+        <option value="yaml">YAML</option>
+        <option value="toml">TOML</option>
+        <option value="bash">Bash / Shell</option>
+        <option value="sql">SQL</option>
+        <option value="graphql">GraphQL</option>
+        <option value="dockerfile">Dockerfile</option>
+        <option value="markdown">Markdown</option>
+        <option value="xml">XML</option>
+        <option value="lua">Lua</option>
+        <option value="haskell">Haskell</option>
+        <option value="elixir">Elixir</option>
+        <option value="erlang">Erlang</option>
+        <option value="ocaml">OCaml</option>
+        <option value="zig">Zig</option>
+        <option value="nim">Nim</option>
+        <option value="dart">Dart</option>
+      </select>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-ghost" id="new-btn" title="New snippet (Ctrl+N)">
+        <span class="icon">✦</span> New
+      </button>
+      <button class="btn btn-ghost" id="copy-btn" title="Copy code (Ctrl+Shift+C)" style="display:none">
+        <span class="icon">⎘</span> Copy
+      </button>
+      <button class="btn btn-primary" id="share-btn" title="Share (Ctrl+Enter)">
+        <span class="icon">⬡</span> Share
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Toolbar ── -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <span class="toolbar-stat">
+        <span id="line-count">0</span> lines
+      </span>
+      <span class="toolbar-stat" id="size-stat">
+        <span id="size-count">0</span> B
+      </span>
+    </div>
+    <div class="toolbar-right" id="expiry-container" style="display:none">
+      <div class="expiry-badge alive" id="expiry-badge">
+        <span class="dot"></span>
+        <span id="expiry-text">10:00 remaining</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Main Editor Area ── -->
+  <div class="editor-wrap" id="editor-wrap">
+
+    <!-- Loading -->
+    <div class="loading-overlay hidden" id="loading-overlay">
+      <div class="spinner"></div>
+      <div class="loading-text">Loading snippet…</div>
+    </div>
+
+    <!-- Error -->
+    <div class="error-state hidden" id="error-state">
+      <div class="error-code">404</div>
+      <div class="error-msg">Snippet not found — it may have expired.</div>
+      <a href="/" class="btn btn-ghost" style="margin-top:4px">← New snippet</a>
+    </div>
+
+    <!-- Line numbers gutter -->
+    <div class="gutter" id="gutter">
+      <div class="gutter-inner" id="gutter-inner">
+        <span class="gutter-line">1</span>
+      </div>
+    </div>
+
+    <!-- Textarea editor -->
+    <textarea
+      class="code-editor"
+      id="code-editor"
+      spellcheck="false"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      placeholder=""
+    ></textarea>
+
+    <!-- View (syntax-highlighted) -->
+    <div class="code-view hidden" id="code-view">
+      <pre><code id="code-highlighted"></code></pre>
+    </div>
+
+    <!-- Splash / empty state -->
+    <div class="splash" id="splash">
+      <div class="splash-icon">⌗</div>
+      <div class="splash-text">
+        Start typing your code…<br/>
+        Press <span class="splash-key">Ctrl+Enter</span> to share
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Share Panel ── -->
+  <div class="share-panel" id="share-panel">
+    <div class="share-panel-inner">
+      <div class="share-label">🔗 Share Link</div>
+      <div class="share-url-row">
+        <input class="share-url" id="share-url-input" readonly type="text" />
+        <button class="btn btn-ghost" id="copy-url-btn">
+          <span class="icon">⎘</span> Copy
+        </button>
+        <button class="btn btn-ghost" id="close-panel-btn">✕</button>
+      </div>
+      <div class="share-meta">
+        <div>Expires in <strong id="share-ttl">10 minutes</strong></div>
+        <div>Size: <strong id="share-size">—</strong></div>
+        <div>Language: <strong id="share-lang">—</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Toast ── -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ── New snippet banner ── -->
+  <div class="new-banner" id="new-banner">✦ New snippet created</div>
+
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
